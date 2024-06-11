@@ -1,0 +1,61 @@
+<%- include('partials/header', {user: user, classname: 'todoapp'}) %>
+			<a href="/draw">Draw New File</a><br>
+			<form action="/" method="post" enctype="multipart/form-data">
+				<label>Upload a drawing file:
+					<input type="file" name="file" accept=".dxf,.svg,image/svg" />
+				</label>
+				<input type="submit" value="Upload" />
+			</form>
+			<% if (activeCount + completedCount > 0) { %>
+			<section class="main">
+				<ul class="todo-list">
+					<% uploads.forEach(function(upload) { %>
+					<li <%- upload.status === 1 ? 'class="completed"' : '' %>>
+						<form action="/<%= upload.id %>" method="post">
+							<div class="view">
+								<input class="toggle" type="checkbox" name="completed" <%- upload.status === 1 ? 'checked' : '' %> onchange="this.form.submit();">
+								<a href="/draw/<%= upload.id %>"><%= upload.filename %></a>
+								<button class="destroy" form="delete-<%= upload.id %>"></button>
+							</div>
+							<input class="edit" name="filename" value="<%= upload.filename %>" onkeyup="if (event.keyCode == 27) { this.setAttribute('data-esc', ''); this.closest('li').className = this.closest('li').className.replace('editing', ''); }" onblur="if (this.getAttribute('data-esc') !== null) { return this.removeAttribute('data-esc'); } this.form.submit();">
+							<% if (filter) { %>
+							<input type="hidden" name="filter" value="<%= filter %>"/>
+							<% } %>
+						</form>
+						<form id="delete-<%= upload.id %>" action="/<%= upload.id %>/delete" method="post">
+							<% if (filter) { %>
+							<input type="hidden" name="filter" value="<%= filter %>"/>
+							<% } %>
+						</form>
+					</li>
+					<% }); %>
+				</ul>
+			</section>
+			<% } %>
+			<% if (activeCount + completedCount > 0) { %>
+			<footer class="footer">
+				<span class="todo-count"><strong><%= activeCount %></strong> items left</span>
+				<ul class="filters">
+					<li>
+						<a <%- !filter ? 'class="selected"' : '' %> href="/">All</a>
+					</li>
+					<li>
+						<a <%- filter == 'active' ? 'class="selected"' : '' %> href="/active">Active</a>
+					</li>
+					<li>
+						<a <%- filter == 'completed' ? 'class="selected"' : '' %> href="/completed">Completed</a>
+					</li>
+				</ul>
+				<% if (completedCount > 0) { %>
+				<form action="/clear-completed" method="post">
+					<button class="clear-completed">Clear completed</button>
+					<% if (filter) { %>
+					<input type="hidden" name="filter" value="<%= filter %>"/>
+					<% } %>
+				</form>
+				<% } %>
+			</footer>
+			<% } %>
+		</section>
+	</body>
+</html>

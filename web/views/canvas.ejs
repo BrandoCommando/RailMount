@@ -1,0 +1,42 @@
+
+<%- include('partials/header', {user:user, classname: 'todoapp'}); %>
+
+
+<style>
+  #canvas_div {
+      text-align: center;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+  }
+  canvas {
+    border: 2px solid black;
+  }
+  </style>
+  <script src="/js/fabric.min.js"></script>
+  
+  <div style="user-select:none">
+  <canvas id="canvas" width="900" height="360" style="touch-action: none; user-select: none;"></canvas>
+  </div>
+
+  <div style="display: inline-block">
+    <button id="drawing-mode" class="btn btn-info">Cancel drawing mode</button><br>
+    <button id="clear-canvas" class="btn btn-info">Clear</button><br>
+    <div id="drawing-mode-options">
+      <label>Color:
+        <input type="color" id="drawing-color" />
+      </label>
+    </div>
+  </div><br /><br />
+  
+  <form method="POST" action="/update/<%= drawing?.id ? drawing.id : '' %>">
+  <% if (drawing) { %>
+  <script>window.toload = "/<%= drawing.outpath %>";</script>
+  <% } %>
+  <textarea id="svg_preview" name="data" rows="6" cols="80"></textarea><br />
+  <input type="text" name="filename" value="<%= drawing?.filename ?? 'undefined' %>" />
+  <input type="submit" value="Update" />
+  </form>
+
+  <script src="/js/canvas.js"></script>
+  
