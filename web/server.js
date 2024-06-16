@@ -16,7 +16,6 @@ const SQLiteStore = require('connect-sqlite3')(session);
 const app = express();
 
 const indexRouter = require('./routes/index');
-const authRouter = require('./routes/auth');
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -34,7 +33,14 @@ app.use(bodyParser.json({limit:'2mb',verify:(req,res,buf,enc)=>{
 app.use(express.urlencoded({extended:true}));
 // Set CORS, security headers, and rate limit
 app.use(middleware);
-app.use(passport.authenticate('session'));
+if(!process.env['NO_AUTH'])
+  app.use(passport.authenticate('session'));
+else app.use((req,res,next)=>{
+  req.session.last = new Date();
+  req.user = req.sessionID;
+  req.isAuthenticated = () => true;
+  next();
+})
 app.use(function(req, res, next) {
   var msgs = req.session.messages || [];
   res.locals.messages = msgs;
@@ -44,7 +50,9 @@ app.use(function(req, res, next) {
 });
 
 app.use('/', indexRouter);
-app.use('/', authRouter);
+if(!process.env['NO_AUTH']&&!!process.env['GOOGLE_CLIENT_ID']&&!!process.env['GOOGLE_CLIENT_SECRET'])
+  app.use('/', require('./routes/auth'));
+else console.warn("Unable to load Google Auth");
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
