@@ -4,6 +4,7 @@ var ensureLogIn = require('connect-ensure-login').ensureLoggedIn;
 var db = require('../db');
 const multer = require('multer');
 const { randomUUID } = require('crypto');
+const yawg = require('yawg');
 const upload = multer({dest:"public/uploads/"});
 
 var ensureLoggedIn = ensureLogIn();
@@ -44,6 +45,8 @@ router.get('/', function(req, res, next) {
 router.get('/draw/:id?', ensureLoggedIn, fetchUploads, function(req, res, next) {
   if(req.params.id)
     res.locals.drawing = res.locals.uploads.find((up)=>up.id==req.params.id);
+  else
+    res.locals.drawing = { filename: yawg({minWords:2,maxWords:3,maxLength:20,delimiter:'-'}) + '.svg' };
   res.render('canvas', { user: req.user, drawing: res.locals.drawing });
 });
 
@@ -128,17 +131,9 @@ router.post('/', ensureLoggedIn, upload.single("file"), function(req, res, next)
 });
 
 router.post('/:id(\\d+)', ensureLoggedIn, function(req, res, next) {
-  req.body.title = req.body.title.trim();
+  if(req.body?.filename)
+    req.body.filename = req.body.filename.trim();
   next();
-}, function(req, res, next) {
-  if (req.body.title !== '') { return next(); }
-  db.run('DELETE FROM uploads WHERE id = ? AND owner_id = ?', [
-    req.params.id,
-    req.user.id
-  ], function(err) {
-    if (err) { return next(err); }
-    return res.redirect('/' + (req.body.filter || ''));
-  });
 }, function(req, res, next) {
   db.run('UPDATE uploads SET filename = ?, status = ? WHERE id = ? AND owner_id = ?', [
     req.body.filename,

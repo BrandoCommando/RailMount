@@ -16,7 +16,7 @@
   <script src="/js/fabric.min.js"></script>
   
   <div style="user-select:none">
-  <canvas id="canvas" width="900" height="360" style="touch-action: none; user-select: none;"></canvas>
+  <canvas id="canvas" width="550" height="360" style="touch-action: none; user-select: none;"></canvas>
   </div>
 
   <div style="display: inline-block">
@@ -33,7 +33,7 @@
   <% if (drawing) { %>
   <script>window.toload = "/<%= drawing.outpath %>";</script>
   <% } %>
-  <textarea id="svg_preview" name="data" rows="6" cols="80"></textarea><br />
+  <textarea id="svg_preview" name="data" rows="6" cols="80" style="display:none"></textarea><br />
   <input type="text" name="filename" value="<%= drawing?.filename ?? 'undefined' %>" />
   <input type="submit" value="Update" />
   </form>
