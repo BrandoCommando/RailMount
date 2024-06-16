@@ -16,7 +16,7 @@
 	</head>
 	<body>
 		<section class="<%= classname %>">
-      <% if (!!user) { %>
+	  <% if (!!user&&user.username) { %>
 			<nav class="nav">
 				<ul>
 					<li class="user"><%= user.username ?? user.name %></li>
@@ -29,5 +29,5 @@
 			</nav>
       <% } %>
 			<header class="header">
-				<a href="/"><h1>Rail Mount</h1></a>
+				<a href="/"><h1>RailMount</h1></a>
       </header>

@@ -50,6 +50,44 @@ router.get('/draw/:id?', ensureLoggedIn, fetchUploads, function(req, res, next) 
   res.render('canvas', { user: req.user, drawing: res.locals.drawing });
 });
 
+router.get('/send/:id', ensureLoggedIn, fetchUploads, function(req,res,next){
+  const cncpi = process.env['CNCPI'] || "http://localhost/receive";
+  const drawing = res.locals.uploads.find((up)=>up.id==req.params.id);
+  if(drawing?.outpath)
+  fs.readFile((drawing.outpath.indexOf("public")==-1?"public/":"")+drawing.outpath, (err, data) => {
+    if(!!err) console.error(err);
+    if(cncpi.indexOf("//")>-1)
+      fetch(`${cncpi}`, { body: JSON.stringify({post:req.body,user:req.user})
+          , method:"POST", headers: {"Content-Type":"application/json"}})
+        .then((e)=>{
+          res.redirect('/');
+        }).catch((err)=>console.error(err));
+    else fs.writeFile(
+        `${cncpi}/${req.user.id}_${drawing.filename}`,
+        data, (err)=>{
+          if(!!err)
+            console.error("Unable to write", err);
+          res.redirect('/');
+        });
+  });
+});
+
+router.post('/receive', function(req,res){
+  const cncpi = process.env['CNCPI'] || "http://localhost/receive";
+  const { user, drawing } = req.body;
+  if(cncpi.indexOf("//")>-1)
+    fetch(`${cncpi}`, { body: JSON.stringify({post:req.body,user:req.user})
+      , method:"POST", headers: {"Content-Type":"application/json"}})
+    .then((e)=>{
+      res.redirect('/');
+    }).catch((err)=>console.error(err));
+  else fs.writeFile(
+    `${cncpi}/${user.id}_${drawing.filename}`,
+    data, (err)=>{
+      console.error("Unable to write", err);
+    });
+});
+
 router.post('/update/:id?', ensureLoggedIn, fetchUploads, function(req, res, next) {
   if(req.params?.id)
     res.locals.drawing = res.locals.uploads.find((up)=>up.id==req.params.id);
@@ -87,12 +125,12 @@ router.post('/update/:id?', ensureLoggedIn, fetchUploads, function(req, res, nex
         if(!!err) throw new Error(err);
         const newId = this.lastID;
         if(!res.headersSent)
-          res.redirect(`/draw/${newId}`);
+          res.redirect(`/`);
       });
     }
   }
   if(!res.headersSent&&req.params.id)
-  res.redirect(`/draw/${req.params.id}`);
+  res.redirect(`/`);
 });
 
 router.get('/active', ensureLoggedIn, fetchUploads, function(req, res, next) {

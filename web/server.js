@@ -11,6 +11,7 @@ const AbortController = require("abort-controller");
 const session = require('express-session');
 const passport = require('passport');
 
+var db = require('./db');
 const SQLiteStore = require('connect-sqlite3')(session);
 
 const app = express();
@@ -22,7 +23,7 @@ app.set('view engine', 'ejs');
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
-		secret:"yermom",saveUninitialized:false,resave:true
+		secret:"yermom",saveUninitialized:true,resave:true
 		,cookie:{secure:false,httpOnly:true,maxAge:360000
 		,store: new SQLiteStore({ db: 'sessions.db', dir: './var/db' })
   }}));
@@ -37,7 +38,15 @@ if(!process.env['NO_AUTH'])
   app.use(passport.authenticate('session'));
 else app.use((req,res,next)=>{
   req.session.last = new Date();
-  req.user = req.sessionID;
+  if(!req.session.owner_id)
+  {
+    db.run("INSERT INTO users (username) VALUES (?)", [req.sessionID],
+      function(err){
+        if(!err)
+          req.session.owner_id = this.lastID;
+      });
+  }
+  req.user = { id: req.session.owner_id };
   req.isAuthenticated = () => true;
   next();
 })

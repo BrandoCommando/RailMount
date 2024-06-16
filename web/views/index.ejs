@@ -14,6 +14,7 @@
 						<div class="view">
 							<a href="/draw/<%= upload.id %>"><%= upload.filename %></a>
 							<a href="/<%= upload.outpath %>" class="download">Download</a>
+							<a href="/send/<%= upload.id %>">Send!</a>
 							<button class="destroy" form="delete-<%= upload.id %>"></button>
 						</div>
 						<form id="delete-<%= upload.id %>" action="/<%= upload.id %>/delete" method="post">
